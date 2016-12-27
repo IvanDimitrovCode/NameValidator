@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">NameValidator</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="passwordConfirm">Confirm password</string>
+    <string name="confirmPass">Confirm Password</string>
+    <string name="firstName">First Name</string>
+    <string name="lastName">Last Name</string>
+    <string name="email">E-mail</string>
+    <string name="validate">Validate</string>
+    <string name="validationMassage">Validation status</string>
+
+    <string name="statusOK">OK</string>
+
+    <string name="maxFieldLength">Max %1$s length is %2$d</string>
+    <string name="minFieldLength">Min %1$s length is %2$d</string>
+
+    <string name="containsAlphanumerical">Alphanumerical values detected</string>
+    <string name="missingAlphanumerical">Missing alphanumerical value</string>
+
+    <string name="invalidEmail">Invalid email</string>
+
+    <string name="missingCapital">Capital letter missing</string>
+    <string name="missingNumeric">Numeric value missing</string>
+
+    <string name="mismatchPassword">Passwords do not match</string>
+
+    <string name="emptyField">Field is empty</string>
+</resources>
