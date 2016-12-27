@@ -90,13 +90,29 @@
                     android:inputType="textPassword"/>
             </android.support.design.widget.TextInputLayout>
 
-            <Button
-                android:id="@+id/btn"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:text="@string/validate"/>
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/registrationButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/register"/>
+
+                <Button
+                    android:id="@+id/filterButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_gravity="center"
+                    android:text="@string/filter"/>
+
+            </LinearLayout>
+
 
         </LinearLayout>
     </LinearLayout>

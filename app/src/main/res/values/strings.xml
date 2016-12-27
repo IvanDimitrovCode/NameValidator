@@ -8,6 +8,10 @@
     <string name="lastName">Last Name</string>
     <string name="email">E-mail</string>
     <string name="validate">Validate</string>
+    <string name="register">Register</string>
+    <string name="filter">Filter</string>
+
+    <!--ERROR MESSEGES-->
     <string name="validationMassage">Validation status</string>
 
     <string name="statusOK">OK</string>

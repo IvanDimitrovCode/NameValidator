@@ -1,249 +1,144 @@
 package com.example.ivandimitrov.namevalidator;
 
-import android.graphics.Color;
-import android.support.design.widget.TextInputLayout;
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String SQL_CREATE_ENTRIES =
+            "CREATE TABLE " + FeedReaderContract.FeedEntry.TABLE_NAME + " (" +
+                    FeedReaderContract.FeedEntry._ID + " INTEGER PRIMARY KEY," +
+                    FeedReaderContract.FeedEntry.COLUMN_USERNAME + " TEXT," +
+                    FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME + " TEXT, " +
+                    FeedReaderContract.FeedEntry.COLUMN_LAST_NAME + " TEXT, " +
+                    FeedReaderContract.FeedEntry.COLUMN_EMAIL + " TEXT, " +
+                    FeedReaderContract.FeedEntry.COLUMN_PASSWORD + " TEXT);";
 
-    private TextInputLayout usernameWrapper;
-    private TextInputLayout firstNameWrapper;
-    private TextInputLayout lastNameWrapper;
-    private TextInputLayout emailWrapper;
-    private TextInputLayout passwordWrapper;
-    private TextInputLayout passwordConfirmWrapper;
+    public static final String SQL_DELETE_ENTRIES =
+            "DROP TABLE IF EXISTS " + FeedReaderContract.FeedEntry.TABLE_NAME;
 
-    public static final int MAX_USERNAME_LENGTH = 30;
-    public static final int MIN_USERNAME_LENGTH = 3;
-    public static final int MAX_PASSWORD_LENGTH = 30;
-    public static final int MIN_PASSWORD_LENGTH = 6;
-    private String mPassword;
+    private UsernameRegistration mRegistration;
+    private SQLiteDatabase       mDataBase;
+    private ContentValues        mContentValues;
+    private FeedReaderDbHelper   mDbHelper;
+    private Activity             mMainActivity;
+
+    private EditText mUsernameEdit;
+    private EditText mFirstNameEdit;
+    private EditText mLastNameEdit;
+    private EditText mEmailEdit;
+    private EditText mPasswordEdit;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMainActivity = this;
+        initResources();
 
-        usernameWrapper = (TextInputLayout) findViewById(R.id.usernameWrapper);
-        firstNameWrapper = (TextInputLayout) findViewById(R.id.firstNameWrapper);
-        lastNameWrapper = (TextInputLayout) findViewById(R.id.lastNameWrapper);
-        emailWrapper = (TextInputLayout) findViewById(R.id.emailWrapper);
-        passwordWrapper = (TextInputLayout) findViewById(R.id.passwordWrapper);
-        passwordConfirmWrapper = (TextInputLayout) findViewById(R.id.passwordConfirmWrapper);
+        mDbHelper = new FeedReaderDbHelper(getApplicationContext());
+        mContentValues = new ContentValues();
 
-        final EditText usernameEdit = (EditText) findViewById(R.id.username);
-        final EditText firstNameEdit = (EditText) findViewById(R.id.firstName);
-        final EditText lastNameEdit = (EditText) findViewById(R.id.lastName);
-        final EditText emailEdit = (EditText) findViewById(R.id.email);
-        final EditText passwordEdit = (EditText) findViewById(R.id.password);
-        final EditText passwordConfirmEdit = (EditText) findViewById(R.id.passwordConfirm);
+        mDataBase = mDbHelper.getWritableDatabase();
+        mRegistration = new UsernameRegistration(this);
 
-        usernameWrapper.setHint(getString(R.string.username));
-        firstNameWrapper.setHint(getString(R.string.firstName));
-        lastNameWrapper.setHint(getString(R.string.lastName));
-        emailWrapper.setHint(getString(R.string.email));
-        passwordWrapper.setHint(getString(R.string.password));
-        passwordConfirmWrapper.setHint(getString(R.string.passwordConfirm));
+        Button registerButton = (Button) findViewById(R.id.registrationButton);
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getUserFromDatabase();
+                if (mRegistration.isRegistrationValid()) {
+                    UserRegister newUser = new UserRegister();
+                    newUser.setUserName(mUsernameEdit.getText().toString());
+                    newUser.setFirstName(mFirstNameEdit.getText().toString());
+                    newUser.setLastName(mLastNameEdit.getText().toString());
+                    newUser.setEmail(mEmailEdit.getText().toString());
+                    newUser.setPassword(mPasswordEdit.getText().toString());
 
-        usernameEdit.addTextChangedListener(mUsernameWatcher);
-        firstNameEdit.addTextChangedListener(mFirstNameWatcher);
-        lastNameEdit.addTextChangedListener(mLastNameWatcher);
-        emailEdit.addTextChangedListener(mEmailWatcher);
-        passwordEdit.addTextChangedListener(mPasswordWatcher);
-        passwordConfirmEdit.addTextChangedListener(mPasswordConfirmWatcher);
+                    addUserToDatabase(newUser);
+                }
+            }
+        });
+        Button filterButton = (Button) findViewById(R.id.filterButton);
+        filterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mMainActivity, FilteringActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
-    TextWatcher mUsernameWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
+    private void addUserToDatabase(UserRegister newUser) {
+        mContentValues.put(FeedReaderContract.FeedEntry.COLUMN_USERNAME, newUser.getUserName());
+        mContentValues.put(FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME, newUser.getFirstName());
+        mContentValues.put(FeedReaderContract.FeedEntry.COLUMN_LAST_NAME, newUser.getLastName());
+        mContentValues.put(FeedReaderContract.FeedEntry.COLUMN_EMAIL, newUser.getEmail());
+        mContentValues.put(FeedReaderContract.FeedEntry.COLUMN_PASSWORD, newUser.getPassword());
+        long newRowId = mDataBase.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, mContentValues);
+    }
+
+    private void getUserFromDatabase() {
+
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        String[] projection = {
+                FeedReaderContract.FeedEntry._ID,
+                FeedReaderContract.FeedEntry.COLUMN_USERNAME,
+                FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME
+        };
+
+        String selection = FeedReaderContract.FeedEntry.COLUMN_USERNAME + " = ?";
+        String[] selectionArgs = {"asd"};
+
+        String sortOrder = FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME + " DESC";
+
+        Cursor cursor = db.query(
+                FeedReaderContract.FeedEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+
+        List itemIds = new ArrayList();
+        while (cursor.moveToNext()) {
+            String s = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERNAME));
+            itemIds.add(s);
         }
+        cursor.close();
+    }
 
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            usernameWrapper.setVisibility(View.VISIBLE);
-        }
 
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-            if (s.length() == 0) {
-                message.append(getString(R.string.emptyField) + "\n");
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mRegistration.clearResources();
+    }
 
-            } else if (start < MIN_USERNAME_LENGTH - 1) {
-                message.append(String.format(getString(R.string.minFieldLength),
-                        getString(R.string.username), MIN_USERNAME_LENGTH) + "\n");
+    private void initResources() {
+        mUsernameEdit = (EditText) findViewById(R.id.username);
+        mFirstNameEdit = (EditText) findViewById(R.id.firstName);
+        mLastNameEdit = (EditText) findViewById(R.id.lastName);
+        mEmailEdit = (EditText) findViewById(R.id.email);
+        mPasswordEdit = (EditText) findViewById(R.id.password);
 
-            } else if (start > MAX_USERNAME_LENGTH) {
-                message.append(String.format(getString(R.string.maxFieldLength),
-                        getString(R.string.username), MAX_USERNAME_LENGTH) + "\n");
-            }
 
-            boolean isAlphanumerical = !s.toString().matches("^.*[^a-zA-Z0-9 ].*$");
-            if (!isAlphanumerical) {
-                message.append(getString(R.string.containsAlphanumerical) + "\n");
-            }
-            usernameWrapper.setError(message);
-        }
-    };
-
-    TextWatcher mFirstNameWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            firstNameWrapper.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-
-            if (s.length() == 0) {
-                message.append(getString(R.string.emptyField) + "\n");
-
-            } else if (start <= MIN_USERNAME_LENGTH - 1) {
-                message.append(String.format(getString(R.string.minFieldLength),
-                        getString(R.string.firstName), MIN_USERNAME_LENGTH) + "\n");
-
-            } else if (start > MAX_USERNAME_LENGTH) {
-                message.append(String.format(getString(R.string.maxFieldLength),
-                        getString(R.string.firstName), MAX_USERNAME_LENGTH) + "\n");
-            }
-
-            boolean isAlphanumerical = !s.toString().matches("^.*[^a-zA-Z0-9 ].*$");
-            if (!isAlphanumerical) {
-                message.append(getString(R.string.containsAlphanumerical) + "\n");
-            }
-
-            firstNameWrapper.setError(message);
-        }
-    };
-
-    TextWatcher mLastNameWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            lastNameWrapper.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-
-            if (s.length() == 0) {
-                message.append(getString(R.string.emptyField) + "\n");
-
-            } else if (start <= MIN_USERNAME_LENGTH - 1) {
-                message.append(String.format(getString(R.string.minFieldLength),
-                        getString(R.string.lastName), MIN_USERNAME_LENGTH) + "\n");
-
-            } else if (start > MAX_USERNAME_LENGTH) {
-                message.append(String.format(getString(R.string.maxFieldLength),
-                        getString(R.string.lastName), MAX_USERNAME_LENGTH) + "\n");
-            }
-
-            boolean isAlphanumerical = !s.toString().matches("^.*[^a-zA-Z0-9 ].*$");
-            if (!isAlphanumerical) {
-                message.append(getString(R.string.containsAlphanumerical) + "\n");
-            }
-            lastNameWrapper.setError(message);
-        }
-    };
-
-    TextWatcher mEmailWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            emailWrapper.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-            String email = s.toString();
-            if (!email.contains("@") || email.indexOf("@") <= 1 || email.indexOf("@") == email.length() - 1
-                    || !email.contains(".") || email.lastIndexOf(".") < email.indexOf("@")) {
-                message.append(getString(R.string.invalidEmail) + "\n");
-            }
-            emailWrapper.setError(message);
-        }
-    };
-
-    TextWatcher mPasswordWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            passwordWrapper.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-            String password = s.toString();
-            mPassword = password;
-
-            if (password.length() > MAX_PASSWORD_LENGTH) {
-                message.append(String.format(getString(R.string.maxFieldLength),
-                        getString(R.string.password), MAX_PASSWORD_LENGTH) + "\n");
-
-            } else if (password.length() < MIN_PASSWORD_LENGTH) {
-                message.append(String.format(getString(R.string.minFieldLength),
-                        getString(R.string.password), MAX_PASSWORD_LENGTH) + "\n");
-            }
-
-            if (password.equals(password.toLowerCase())) {
-                message.append(getString(R.string.missingCapital) + "\n");
-            }
-
-            boolean containsNumerical = password.matches(".*\\d.*");
-            if (!containsNumerical) {
-                message.append(getString(R.string.missingNumeric) + "\n");
-            }
-
-            boolean containsAlphanumerical = password.matches("^.*[^a-zA-Z0-9 ].*$");
-            if (!containsAlphanumerical) {
-                message.append(getString(R.string.missingAlphanumerical) + "\n");
-            }
-            passwordWrapper.setError(message);
-        }
-    };
-
-    TextWatcher mPasswordConfirmWatcher = new TextWatcher() {
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-            passwordConfirmWrapper.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            StringBuffer message = new StringBuffer();
-            String passwordConfirm = s.toString();
-            if (!passwordConfirm.equals(mPassword)) {
-                message.append(getString(R.string.mismatchPassword) + "\n");
-            }
-            passwordConfirmWrapper.setError(message);
-        }
-    };
+    }
 }
