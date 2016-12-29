@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getUserFromDatabase();
                 if (mRegistration.isRegistrationValid()) {
                     UserRegister newUser = new UserRegister();
                     newUser.setUserName(mUsernameEdit.getText().toString());
@@ -93,37 +92,7 @@ public class MainActivity extends AppCompatActivity {
         long newRowId = mDataBase.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, mContentValues);
     }
 
-    private void getUserFromDatabase() {
 
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        String[] projection = {
-                FeedReaderContract.FeedEntry._ID,
-                FeedReaderContract.FeedEntry.COLUMN_USERNAME,
-                FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME
-        };
-
-        String selection = FeedReaderContract.FeedEntry.COLUMN_USERNAME + " = ?";
-        String[] selectionArgs = {"asd"};
-
-        String sortOrder = FeedReaderContract.FeedEntry.COLUMN_FIRST_NAME + " DESC";
-
-        Cursor cursor = db.query(
-                FeedReaderContract.FeedEntry.TABLE_NAME,
-                projection,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder
-        );
-
-        List itemIds = new ArrayList();
-        while (cursor.moveToNext()) {
-            String s = cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_USERNAME));
-            itemIds.add(s);
-        }
-        cursor.close();
-    }
 
 
     @Override
@@ -138,7 +107,5 @@ public class MainActivity extends AppCompatActivity {
         mLastNameEdit = (EditText) findViewById(R.id.lastName);
         mEmailEdit = (EditText) findViewById(R.id.email);
         mPasswordEdit = (EditText) findViewById(R.id.password);
-
-
     }
 }

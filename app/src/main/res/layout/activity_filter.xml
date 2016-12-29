@@ -4,29 +4,119 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <CheckBox
-        android:id="@+id/boxUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/username"/>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
 
-    <CheckBox
-        android:id="@+id/boxFirstName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/firstName"/>
+        <CheckBox
+            android:id="@+id/boxUsername"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/username"
+            />
 
-    <CheckBox
-        android:id="@+id/boxLastName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/lastName"/>
+        <EditText
+            android:id="@+id/filterUsername"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/filterHintUsername"/>
 
-    <CheckBox
-        android:id="@+id/boxEmail"
-        android:layout_width="wrap_content"
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/boxFirstName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/firstName"/>
+
+        <EditText
+            android:id="@+id/filterFirstName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/filterHintFirstName"/>
+
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/boxLastName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/lastName"/>
+
+        <EditText
+            android:id="@+id/filterLastName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/filterHintLastName"/>
+
+    </LinearLayout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/boxEmail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/email"/>
+
+        <EditText
+            android:id="@+id/filterEmail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/filterHintEmail"
+            android:inputType="textEmailAddress"/>
+
+    </LinearLayout>
+
+    <RadioGroup
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/email"/>
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/buttonCombined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/combined"/>
+
+        <RadioButton
+            android:id="@+id/buttonSeparate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/separate"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/filterArgument"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:hint="@string/filterHintMain"
+        android:inputType="text"/>
 
     <Button
         android:id="@+id/filterButton2"
@@ -34,4 +124,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/filter"/>
+
+    <ListView
+        android:id="@+id/filterList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </ListView>
 </LinearLayout>
